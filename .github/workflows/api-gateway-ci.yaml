@@ -6,47 +6,48 @@ on:
       - hospital-management/**
 
 jobs:
- 
-     steps:
-     - name: Setup Java
-       uses: actions/setup-java@v4
-       with:
-        distribution: 'temurin'
-        java-version: '21'
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
-     - name: Checkout code
-       uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-     - name: Perform google formatter check
-       run: mvn com.spotify.fmt:fmt-maven-plugin:check
+      - name: Perform google formatter check
+        run: mvn com.spotify.fmt:fmt-maven-plugin:check
 
-     - name: GitLeaks Scan
-       uses: zricethezav/gitleaks-action@v1.3.0
-       with:
-        args: --path=.
+      - name: GitLeaks Scan
+        uses: zricethezav/gitleaks-action@v1.3.0
+        with:
+          args: --path=.
 
-     - name: OSS Scan
-       run: mvn ossindex:audit
-       continue-on-error: true
+      - name: OSS Scan
+        run: mvn ossindex:audit
+        continue-on-error: true
 
-     - name: OWASP Scan
-       if: false
-       run: mvn org.owasp:dependency-check-maven:check
+      - name: OWASP Scan
+        if: false
+        run: mvn org.owasp:dependency-check-maven:check
 
-     - name: Re-tag the docker image
-       run: docker tag dnyanyog.org/api-gateway:latest ${{secrets.DOCKER_REGISTRY_USER}}/api-gateway:latest
+      - name: Re-tag the docker image
+        run: docker tag dnyanyog.org/api-gateway:latest ${{ secrets.DOCKER_REGISTRY_USER }}/api-gateway:latest
 
-     - name: Login to Docker Hub
-       uses: docker/login-action@v2
-       with:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
           username: ${{ secrets.DOCKER_REGISTRY_USER }}
           password: ${{ secrets.DOCKER_REGISTRY_PAT }}
 
-     - name: Build code and create docker image
-       run: |
+      - name: Build code and create docker image
+        run: |
           cd hospital-management/api-gateway
           mvn clean install docker:build
 
-     - name: Push Docker Image for api-gateway
-       run: 
-          docker push ${{secrets.DOCKER_REGISTRY_USER}}/api-gateway:latest
+      - name: Push Docker Image for api-gateway
+        run: docker push ${{ secrets.DOCKER_REGISTRY_USER }}/api-gateway:latest
