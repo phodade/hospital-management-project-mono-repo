@@ -1,3 +1,4 @@
+
 # Use a base image with the required runtime environment
 # Use a base image with JDK
 FROM pratikshahodade123/openjdk-24-jdk
